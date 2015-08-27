@@ -1,0 +1,60 @@
+- name: Installing repository signing key for elasticsearch.org
+  apt_key: id=D88E42B4 url=http://packages.elasticsearch.org/GPG-KEY-elasticsearch state=present
+
+- name: Adding elasticsearch.org repository
+  apt_repository: repo='deb http://packages.elasticsearch.org/elasticsearch/1.4/debian stable main' state=present
+
+- name: Installing Elasticsearch from package & dependencies
+  apt: pkg={{ item }} state=present update-cache=yes cache_valid_time=86400
+  with_items:
+  - libvoikko1
+  - elasticsearch
+  - unzip
+  - openjdk-7-jre
+
+- name: Overwriting ES_JAVA_OPTS with configuration for Voikko plugin
+  lineinfile: dest=/etc/default/elasticsearch regexp="^#*ES_JAVA_OPTS=" line="ES_JAVA_OPTS=-Djna.library.path=/usr/lib/x86_64-linux-gnu"
+
+- name: Configuring ES to listen only on 127.0.0.1
+  lineinfile: 'dest="/etc/elasticsearch/elasticsearch.yml" regexp="^#*network.host: " line="network.host: 127.0.0.1"'
+
+- name: Make a temporary directory for voikko dictionary
+  command: mktemp -d
+  register: temporary_directory
+
+- name: Downloading language dictionaries
+  get_url: url=http://www.puimula.org/htp/testing/voikko-snapshot/dict-morpho.zip
+           dest={{temporary_directory.stdout}}/dict-morpho.zip mode=0644
+
+- name: Creating dictionary directory
+  sudo: yes
+  file: path=/etc/voikko
+        state=directory
+
+- name: Voikko | Extract language dictionaries
+  sudo: yes
+  command: unzip -o dict-morpho.zip -d /etc/voikko
+           chdir={{temporary_directory.stdout}}
+           creates=/etc/voikko/2/mor-morpho
+
+- name: Copy in Voikko Analysis plugin for Elasticsearch
+  sudo: yes
+  copy: src=lib/{{ item }} dest=/tmp/elasticsearch-jars/
+  with_items: voikko_es_plugin
+
+- name: Setup Voikko Analysis plugin for Elasticsearch
+  sudo: yes
+  command: /usr/share/elasticsearch/bin/plugin --url file:///tmp/elasticsearch-jars/elasticsearch-analysis-voikko-0.2.1-SNAPSHOT.jar --install elasticsearch-analysis-voikko
+           creates=/usr/share/elasticsearch/plugins/analysis-voikko
+
+- name: Copy in support libraries for Analysis plugin
+  sudo: yes
+  copy: src=lib/{{ item }} dest=/usr/share/elasticsearch/plugins/analysis-voikko
+  with_items: voikko_libs
+
+- name: Enable elasticsearch service to start on boot
+  sudo: yes
+  service: name=elasticsearch enabled=yes
+
+- name: Start elasticsearch
+  service: name=elasticsearch state=restarted

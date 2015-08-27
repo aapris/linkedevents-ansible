@@ -1,0 +1,134 @@
+- name: Create system user for Linked Events API server
+  user: name={{linkedevents_system_user}} comment="Linked Events API server" system=yes
+
+- name: Install packages necessary for Linked Events API server
+  apt: pkg={{ item }} state=present update-cache=yes cache_valid_time=86400
+  with_items:
+  - git-core
+  - python3.4-dev
+  - libyaml-dev
+  - python-virtualenv
+  - libxslt1-dev
+  - postgresql
+  - postgresql-9.3-postgis-2.1
+  - gettext
+  # Linkedevents installs its own venv copy of psycopg2, this is used
+  # by Ansible itself to set up databases
+  - python-psycopg2
+  # This is needed to compile psycopg2
+  - libpq-dev
+  - python-gdal
+  # For deploying using uwsgi+nginx
+  - uwsgi
+  - uwsgi-plugin-python3
+  - nginx-full
+
+#  git: repo=https://github.com/City-of-Helsinki/linkedevents.git
+
+- name: Clone the newest version of Linked Events API server
+  when: update_code is defined
+  sudo_user: "{{ linkedevents_system_user }}"
+  ignore_errors: yes  
+  git: repo=https://github.com/aapris/linkedevents.git
+       dest=/home/{{ linkedevents_system_user }}/linkedevents
+
+- name: Clone the newest version of Linked Events Demoform stuff
+  when: update_code is defined
+  sudo_user: "{{ linkedevents_system_user }}"
+  ignore_errors: yes  
+  git: repo=https://github.com/aapris/linkedevents-demoform.git
+       dest=/home/{{ linkedevents_system_user }}/linkedevents/demoform
+
+- name: Remove the old virtualenv
+  when: cleanup_venv is defined
+  sudo_user: "{{ linkedevents_system_user }}"
+  command: rm -rf /home/{{ linkedevents_system_user }}/levenv
+           removes=/home/{{ linkedevents_system_user }}/levenv
+
+- name: Copy in Python3 virtualenv wrapper
+  copy: src=virtualenv-3 dest=/usr/local/bin/virtualenv-3 mode=0755
+
+- name: Install the required dependencies
+  when: update_code is defined
+  sudo_user: "{{ linkedevents_system_user }}"
+# pip processing does not read the encoding header in Python files, thus
+# causing a failure if there are non-ASCII characters in setup.py, workaround
+# this by setting locale
+  environment:
+   LC_CTYPE: C.UTF-8
+  pip: requirements=/home/{{ linkedevents_system_user }}/linkedevents/requirements.txt
+       virtualenv=/home/{{ linkedevents_system_user }}/levenv
+       virtualenv_command=/usr/local/bin/virtualenv-3
+       virtualenv_site_packages=no
+       state=latest
+
+- name: Set up PostGRESQL database access for test server
+  sudo_user: postgres
+  postgresql_user: name={{ linkedevents_system_user }}
+                   password={{ linkedevents_db_password }}
+
+- name: Set up PostGRES database for test server
+  sudo_user: postgres
+  postgresql_db: name=linkedevents
+                 owner={{ linkedevents_system_user }}
+
+- name: Set up HSTORE-extension for the database
+  sudo_user: postgres
+  command: psql -d linkedevents -c "CREATE EXTENSION hstore"
+  # The command will fail, if hstore is already setup
+  # Better way would be to figure out the message indicating actual
+  # error in setting up the extension. I do not know how to do that.
+  ignore_errors: yes
+
+- name: Set up Postgis for the database
+  sudo_user: postgres
+  command: psql -d linkedevents -c "CREATE EXTENSION postgis"
+  # See above
+  ignore_errors: yes
+
+#- name: Copy in Django configuration
+#  sudo_user: "{{ linkedevents_system_user }}"
+#  template: src=le_django_config.j2
+#            dest=/home/{{ linkedevents_system_user }}/linkedevents/linkedevents/settings/prod.py
+
+- name: Copy in Django configuration
+  sudo_user: "{{ linkedevents_system_user }}"
+  template: src=le_django_local_settings.j2
+            dest=/home/{{ linkedevents_system_user }}/linkedevents/local_settings.py
+
+- name: Running Django configuration shell script
+  when: update_code is defined
+  sudo_user: "{{ linkedevents_system_user }}"
+  script: django_setup.sh
+
+- name: Copy in uWSGI application configuration
+  template: src=uwsgi_appconfig.j2
+            dest=/etc/uwsgi/apps-available/linkedevents.yml
+
+- name: Enable (symlink) uWSGI configuration
+  file: force=yes
+        state=link
+        path=/etc/uwsgi/apps-enabled/linkedevents.yml
+        src=/etc/uwsgi/apps-available/linkedevents.yml
+
+- name: Copy in nginx site configuration
+  template: src=nginx_site_config.j2
+            dest=/etc/nginx/sites-available/linkedevents
+
+- name: Enable (symlink) nginx configuration
+  file: force=yes
+        state=link
+        path=/etc/nginx/sites-enabled/linkedevents
+        src=/etc/nginx/sites-available/linkedevents
+
+- name: Remove nginx default server symlink
+  file: path=/etc/nginx/sites-enabled/default
+        state=absent
+
+#- name: Restart uWSGI
+#  service: name=uwsgi state=restarted
+
+#- name: Restart nginx
+#  service: name=nginx state=restarted
+
+# NOTE: configuration of the application is still missing

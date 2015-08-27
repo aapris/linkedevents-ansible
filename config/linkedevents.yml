@@ -1,0 +1,17 @@
+# Username (both system and database) for the Linked Events server
+# Note: it is not possible to change this after initial provisioning as the
+# database permissions will not change
+linkedevents_system_user: linkedevents
+
+# Password used for database user (system user is sudo-only)
+# This is used to connect across TCP-socket
+linkedevents_db_password: you_may_change_this
+
+# Virtualhost the nginx will serve linkedevents out of
+linkedevents_virtualhost: linkedevents.localhost
+
+# Set this to pull new code from repository
+update_code: yes_please
+
+# If something fails, this can be used to remove Python dependencies
+#cleanup_venv: yes_please

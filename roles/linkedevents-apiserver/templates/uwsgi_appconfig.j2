@@ -1,0 +1,12 @@
+uwsgi:
+  chdir: /home/{{ linkedevents_system_user }}/linkedevents
+  mount: "/linkedevents=linkedevents/wsgi.py"
+  callable: application
+  # Change this to pick appropriate settings
+  env: DJANGO_SETTINGS_MODULE=linkedevents.settings
+  virtualenv: /home/{{ linkedevents_system_user }}/levenv
+  socket: 127.0.0.1:8000
+  processes: 4
+  threads: 1
+  uid: {{ linkedevents_system_user }}
+  manage-script-name: true

@@ -1,0 +1,44 @@
+DEBUG = True
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.contrib.gis.db.backends.postgis',
+        'NAME': 'linkedevents',
+        'USER': '{{ linkedevents_system_user }}',
+        'PASSWORD': '{{ linkedevents_db_password }}',
+        'HOST': 'localhost',
+        'PORT': '',
+    }
+}
+
+#STATICFILES_DIRS = list(STATICFILES_DIRS)
+#STATICFILES_DIRS += [os.path.join(BASE_DIR, 'demoform')]
+
+# List of finder classes that know how to find static files in
+# various locations.
+#STATICFILES_FINDERS = (
+#    'django.contrib.staticfiles.finders.FileSystemFinder',
+#    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+#)
+
+ROOT_URLCONF = 'demoform.urls'
+#
+#INSTALLED_APPS = list(INSTALLED_APPS)
+# #INSTALLED_APPS = ['debug_toolbar'] + INSTALLED_APPS + ['demoform']
+#CUSTOM_APPS = ['demoform']
+CUSTOM_APPS = ['demoform', 'rosetta']
+
+# LOGGING_CONFIG = None
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+#         'LOCATION': 'my_cache_table',
+#     }
+# }
+
+JWT_AUTH = {
+    'JWT_SECRET_KEY': 'caMt5FgiXYyQpPY0QFKo4jMtFQamiNyye5qY7LuijDtp9e6PvuhanNfQyH598SsmUiPWxx4XtQmjVwLLGqBVFKp2CTUiZB0q',
+    'JWT_AUDIENCE': 'NWOWjp8ik6YuvyGHSX26BgkL34FBKvQyHuSWlaSM',
+    'JWT_PAYLOAD_GET_USER_ID_HANDLER': 'helusers.jwt.get_user_id_from_payload_handler',
+}
