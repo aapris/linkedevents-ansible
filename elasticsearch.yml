@@ -1,0 +1,9 @@
+---
+
+- hosts: linkedevents
+  gather_facts: no
+  sudo: yes
+  vars_files:
+  - config/linkedevents.yml
+  roles:
+  - elasticsearch
