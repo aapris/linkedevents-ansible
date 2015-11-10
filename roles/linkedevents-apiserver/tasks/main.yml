@@ -105,11 +105,11 @@
   template: src=uwsgi_appconfig.j2
             dest=/etc/uwsgi/apps-available/linkedevents.yml
 
-- name: Enable (symlink) uWSGI configuration
-  file: force=yes
-        state=link
-        path=/etc/uwsgi/apps-enabled/linkedevents.yml
-        src=/etc/uwsgi/apps-available/linkedevents.yml
+#- name: Enable (symlink) uWSGI configuration
+#  file: force=yes
+#        state=link
+#        path=/etc/uwsgi/apps-enabled/linkedevents.yml
+#        src=/etc/uwsgi/apps-available/linkedevents.yml
 
 - name: Copy in nginx site configuration
   template: src=nginx_site_config.j2
