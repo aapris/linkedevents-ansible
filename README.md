@@ -18,7 +18,7 @@ mkvirtualenv ansible
 pip install ansible
 ```
 
-Then boot up vagrant, cd to this directory and run:
+Then boot up vagrant, cd to the directory where this file is located and run:
 
 ```
 vagrant up
@@ -41,3 +41,25 @@ sudo -s -u linkedevents
 /home/linkedevents/levenv/bin/python manage.py runserver 0.0.0.0:8000
 ```
 
+At this stage the database is not initialized and you have two choices:
+
+1) Initialize an empty database. (REST API with no data is dull.)
+
+2) Download City of Helsinki's Linked events database dump and load
+it!
+
+First create vagrant PostgreSQL superuser:
+
+```
+sudo su - postgres
+createuser -s vagrant
+exit
+```
+
+Then, as vagrant user, drop current database, re-create it and load 
+database dump into it.
+
+```
+dropdb linkedevents
+createdb linkedevents && curl http://api.hel.fi/linkedevents/static/linkedevents.dump.gz | gunzip - | psql -q linkedevents
+```
