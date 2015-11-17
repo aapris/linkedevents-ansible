@@ -7,6 +7,9 @@ A Vagrantfile is included for testing in a local virtual machine.
 
 Edit file `config/linkedevents.yml` and change at least the password there.
 
+NOTE: currently this installs aapris' version of Linked events:
+https://github.com/City-of-Helsinki/linkedevents
+
 Testing with vagrant
 --------------------
 
@@ -26,6 +29,16 @@ ssh-copy-id vagrant@127.0.0.1 -p 2279  # password is vagrant
 ansible-playbook -vvvv -i vagrant.inventory site.yml
 ```
 
+Don't panic if `vagrant up` ends with error:
+
+```
+The executable 'ansible-playbook' Vagrant is trying to run was not
+found in the PATH variable. This is an error. Please verify
+this software is installed and on the path.
+```
+Latter `ansible-playbook...` will do all things needed.
+(If you fix this, please send me a patch.)
+
 If you want to install elasticsearch aswell, run command:
 
 ```
@@ -38,6 +51,7 @@ the Django development server:
 ```
 ssh vagrant@127.0.0.1 -p 2279
 sudo -s -u linkedevents
+cd /home/linkedevents/linkedevents
 /home/linkedevents/levenv/bin/python manage.py runserver 0.0.0.0:8000
 ```
 
@@ -63,3 +77,15 @@ database dump into it.
 dropdb linkedevents
 createdb linkedevents && curl http://api.hel.fi/linkedevents/static/linkedevents.dump.gz | gunzip - | psql -q linkedevents
 ```
+
+Then point your browser to URL 
+http://127.0.0.1:8079/v0.1/event/
+
+Note: if you get `ProgrammingError at /v0.1/event/` and it is related to 
+helevents or something similar, nuke helevents/helusers related stuff 
+from `settings.py`:
+
+```
+perl -i.bak -pe "s/(^AUTH_USER_MODEL|^ {4}'hel)/### \$1/g" /home/linkedevents/linkedevents/linkedevents/settings.py
+```
+
