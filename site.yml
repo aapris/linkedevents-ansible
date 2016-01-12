@@ -1,15 +1,5 @@
 ---
 
-#- hosts: all
-#  gather_facts: yes
-#  sudo: yes
-#  vars_files:
-#  - config/common.yml
-#  - config/sensu_client.yml
-#  roles:
-#  - common
-#  - Mayeu.sensu
-
 - hosts: linkedevents
   gather_facts: no
   sudo: yes
