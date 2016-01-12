@@ -18,26 +18,19 @@
   # This is needed to compile psycopg2
   - libpq-dev
   - python-gdal
+  # To compile Pillow
+  - libjpeg-dev
   # For deploying using uwsgi+nginx
   - uwsgi
   - uwsgi-plugin-python3
   - nginx-full
 
-#  git: repo=https://github.com/City-of-Helsinki/linkedevents.git
-
 - name: Clone the newest version of Linked Events API server
   when: update_code is defined
   sudo_user: "{{ linkedevents_system_user }}"
   ignore_errors: yes  
-  git: repo=https://github.com/aapris/linkedevents.git
+  git: repo=https://github.com/City-of-Helsinki/linkedevents.git
        dest=/home/{{ linkedevents_system_user }}/linkedevents
-
-- name: Clone the newest version of Linked Events Demoform stuff
-  when: update_code is defined
-  sudo_user: "{{ linkedevents_system_user }}"
-  ignore_errors: yes  
-  git: repo=https://github.com/aapris/linkedevents-demoform.git
-       dest=/home/{{ linkedevents_system_user }}/linkedevents/demoform
 
 - name: Remove the old virtualenv
   when: cleanup_venv is defined
