@@ -7,9 +7,6 @@ A Vagrantfile is included for testing in a local virtual machine.
 
 Edit file `config/linkedevents.yml` and change at least the password there.
 
-NOTE: currently this installs aapris' version of Linked events:
-https://github.com/City-of-Helsinki/linkedevents
-
 Testing with vagrant
 --------------------
 
