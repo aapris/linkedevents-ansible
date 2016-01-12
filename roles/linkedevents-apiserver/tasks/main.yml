@@ -89,6 +89,9 @@
   template: src=le_django_local_settings.j2
             dest=/home/{{ linkedevents_system_user }}/linkedevents/local_settings.py
 
+- name: Kludge to make collectstatic work until settings.py is fixed (assets removed)
+  file: path=/home/linkedevents/linkedevents/assets state=directory mode=0755
+
 - name: Running Django configuration shell script
   when: update_code is defined
   sudo_user: "{{ linkedevents_system_user }}"
