@@ -5,7 +5,9 @@ uwsgi:
   # Change this to pick appropriate settings
   env: DJANGO_SETTINGS_MODULE=linkedevents.settings
   virtualenv: /home/{{ linkedevents_system_user }}/levenv
-  socket: 127.0.0.1:8000
+  # socket: 127.0.0.1:8000
+  # Use unix socket instead of tcp socket
+  socket: /home/{{ linkedevents_system_user }}/run/linkedevents.sock
   processes: 4
   threads: 1
   uid: {{ linkedevents_system_user }}
