@@ -33,7 +33,7 @@ Vagrant.configure("2") do |config|
         config.vm.provider "virtualbox" do |v|
                 v.customize ["modifyvm", :id, "--cpus", "2"]
                 v.customize ["modifyvm", :id, "--ostype", "Ubuntu_64"]
-                v.memory = 1024
+                v.memory = 2048
                 v.name = "vagrant"
         end
 
@@ -47,6 +47,8 @@ SCRIPT
 
         config.vm.provision "ansible" do |ansible|
                 ansible.playbook = "site.yml"
+                ansible.inventory_path = "vagrant.inventory"
+                ansible.limit = "linkedevents"
                 ansible.extra_vars = { app_user: "vagrant" }
                 ansible.host_key_checking = false
                 ansible.verbose = "v"
